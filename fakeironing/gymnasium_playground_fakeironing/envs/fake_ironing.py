@@ -23,7 +23,7 @@ COLOR_ROBOT = (255, 0, 0)
 class FakeIroningEnv(gym.Env):
     metadata = {"render_modes": ["human", "text"], "render_fps": 4}
 
-    def __init__(self, render_mode=None, inFileStr='map1.csv', initX=2, initY=2, goalX=7, goalY=2):
+    def __init__(self, render_mode=None, inFileStr='map1.csv', initX=2, initY=2):
 
         # Remember "Coordinate Systems for `.csv` and `print(numpy)`", above.
 
