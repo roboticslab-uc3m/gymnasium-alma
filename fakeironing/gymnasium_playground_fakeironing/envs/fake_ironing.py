@@ -28,6 +28,7 @@ class FakeIroningEnv(gym.Env):
 
         # Remember "Coordinate Systems for `.csv` and `print(numpy)`", above.
 
+        self.inFileStr = inFileStr
         self.inFile = np.genfromtxt(inFileStr, delimiter=',')
 
         try:
@@ -74,6 +75,8 @@ class FakeIroningEnv(gym.Env):
     def reset(self, seed=None, options=None):
         # We need the following line to seed self.np_random.
         super().reset(seed=seed)
+
+        self.inFile = np.genfromtxt(self.inFileStr, delimiter=',')
 
         self._agent_location = self._initial_agent_location
 
