@@ -124,6 +124,7 @@ class FakeIroningEnv(gym.Env):
 
         if not np.any(self.inFile == 2):
             print('FakeIroningEnv.step: done yay!')
+            reward = 1.0
             terminated = True
 
         observation = self._get_obs()
