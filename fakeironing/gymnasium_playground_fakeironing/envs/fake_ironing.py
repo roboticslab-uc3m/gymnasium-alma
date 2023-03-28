@@ -100,18 +100,18 @@ class FakeIroningEnv(gym.Env):
             terminated = True
             quit()
 
-        if candidate_state_tag == 0:  # free space
+        if candidate_state_tag == 0:  # void
             self._agent_location = candidate_state
-            reward = 0
-            terminated = False
-        elif candidate_state_tag == 1:  # wall
-            # state preserved
             reward = -0.5
             terminated = True
-        elif candidate_state_tag == 3:  # goal
+        elif candidate_state_tag == 1:  # ok
             self._agent_location = candidate_state
-            reward = 1.0
+            reward = 0
             terminated = True
+        elif candidate_state_tag == 2:  # pending
+            self._agent_location = candidate_state
+            reward = 0.5
+            terminated = False
         else:
             print('FakeIroningEnv.step: found wicked tag, please review!')
             terminated = True
