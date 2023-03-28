@@ -90,8 +90,7 @@ class FakeIroningEnv(gym.Env):
         candidate_state = self._agent_location + \
             self._action_to_direction[action]
         try:
-            candidate_state_tag = self.inFile[candidate_state[0]
-                                              ][candidate_state[1]]
+            candidate_state_tag = self.inFile[candidate_state[0]][candidate_state[1]]
         except IndexError as e:
             # state preserved
             print('FakeIroningEnv.step: full exception message:', e)
@@ -107,9 +106,10 @@ class FakeIroningEnv(gym.Env):
         elif candidate_state_tag == 1:  # ok
             self._agent_location = candidate_state
             reward = 0
-            terminated = True
+            terminated = False
         elif candidate_state_tag == 2:  # pending
             self._agent_location = candidate_state
+            self.inFile[candidate_state[0]][candidate_state[1]] == 1:
             reward = 0.5
             terminated = False
         else:
