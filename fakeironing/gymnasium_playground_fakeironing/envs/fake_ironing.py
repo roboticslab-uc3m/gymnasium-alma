@@ -16,7 +16,8 @@ X (rows: self.inFile.shape[0]; provides the height in pygame)
 
 MAX_WINDOW_WIDTH, MAX_WINDOW_HEIGHT = 1920, 1080
 COLOR_BACKGROUND = (0, 0, 0)
-COLOR_WALL = (255, 255, 255)
+COLOR_OK = (255, 255, 255)
+COLOR_PENDING = (0, 0, 255)
 COLOR_ROBOT = (255, 0, 0)
 
 
@@ -36,15 +37,6 @@ class FakeIroningEnv(gym.Env):
             print('FakeIroningEnv.__init__: init out of bounds, please review code!')
             quit()
         self._initial_agent_location = np.array([initX, initY])
-
-        try:
-            # The goal (3) is fixed, so we paint it, but the robot (2) moves, so done at render().
-            self.inFile[goalX][goalY] = 3
-        except IndexError as e:
-            print('FakeIroningEnv.__init__: full exception message:', e)
-            print('FakeIroningEnv.__init__: goal out of bounds, please review code!')
-            quit()
-        self._goal_location = np.array([goalX, goalY])
 
         self.nS = self.inFile.shape[0] * \
             self.inFile.shape[1]  # nS: number of states
@@ -76,9 +68,7 @@ class FakeIroningEnv(gym.Env):
 
     def _get_info(self):
         return {
-            "distance": np.linalg.norm(
-                self._agent_location - self._goal_location, ord=1
-            )
+            "distance": 0
         }
 
     def reset(self, seed=None, options=None):
@@ -183,15 +173,18 @@ class FakeIroningEnv(gym.Env):
                 # -- Skip box if map indicates a 0
                 if self.inFile[iX][iY] == 0:
                     continue
+                
                 if self.inFile[iX][iY] == 1:
                     pygame.draw.rect(canvas,
-                                     COLOR_WALL,
+                                     COLOR_OK,
                                      pygame.Rect(self.cellWidth*iY, self.cellHeight*iX, self.cellWidth, self.cellHeight))
-                if self.inFile[iX][iY] == 3:
-                    pygame.draw.rect(canvas, (0, 255, 0),
+                
+                if self.inFile[iX][iY] == 2:
+                    pygame.draw.rect(canvas,
+                                     COLOR_PENDING,
                                      pygame.Rect(self.cellWidth*iY, self.cellHeight*iX, self.cellWidth, self.cellHeight))
-                robot = pygame.draw.rect(canvas, COLOR_ROBOT,
-                                         pygame.Rect(self.cellWidth*self._agent_location[1]+self.cellWidth/4.0, self.cellHeight*self._agent_location[0]+self.cellHeight/4.0, self.cellWidth/2.0, self.cellHeight/2.0))
+                pygame.draw.rect(canvas, COLOR_ROBOT,
+                    pygame.Rect(self.cellWidth*self._agent_location[1]+self.cellWidth/4.0, self.cellHeight*self._agent_location[0]+self.cellHeight/4.0, self.cellWidth/2.0, self.cellHeight/2.0))
 
         # The following line copies our drawings from `canvas` to the
         # visible window.
