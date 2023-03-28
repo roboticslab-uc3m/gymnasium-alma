@@ -77,6 +77,9 @@ class FakeIroningEnv(gym.Env):
 
         self._agent_location = self._initial_agent_location
 
+        if self.inFile[self._agent_location[0]][self._agent_location[1]] == 2:
+            self.inFile[self._agent_location[0]][self._agent_location[1]] = 1
+
         observation = self._get_obs()
         info = self._get_info()
 
@@ -87,8 +90,7 @@ class FakeIroningEnv(gym.Env):
     def step(self, action):
         #print('FakeIroningEnv.step', action)
 
-        candidate_state = self._agent_location + \
-            self._action_to_direction[action]
+        candidate_state = self._agent_location + self._action_to_direction[action]
         try:
             candidate_state_tag = self.inFile[candidate_state[0]][candidate_state[1]]
         except IndexError as e:
@@ -116,6 +118,10 @@ class FakeIroningEnv(gym.Env):
             print('FakeIroningEnv.step: found wicked tag, please review!')
             terminated = True
             quit()
+
+        if not np.any(self.inFile == 2):
+            print('FakeIroningEnv.step: done yay!')
+            terminated = True
 
         observation = self._get_obs()
         info = self._get_info()
