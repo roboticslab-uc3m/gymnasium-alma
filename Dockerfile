@@ -3,7 +3,7 @@ FROM ubuntu:22.04
 ARG SSL_DEBFILE="libssl1.1_1.1.1f-1ubuntu2.17_amd64.deb"
 ARG DEBIAN_FRONTEND="noninteractive"
 
-COPY . /gymnasium-playground
+COPY . /alma-playground
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -18,8 +18,9 @@ RUN apt-get update && \
     rm $SSL_DEBFILE && \
     pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir cffi && \
-    pip install --no-cache-dir -e /gymnasium-playground/bandit && \
-    pip install --no-cache-dir -e /gymnasium-playground/gridworld && \
+    pip install --no-cache-dir -e /alma-playground/bandit && \
+    pip install --no-cache-dir -e /alma-playground/fakeironing && \
+    pip install --no-cache-dir -e /alma-playground/gridworld && \
     mkdir /playground
 
 WORKDIR /playground
