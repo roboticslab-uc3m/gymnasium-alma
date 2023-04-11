@@ -2,6 +2,7 @@ import gymnasium as gym
 import numpy as np
 import pygame
 from gymnasium import spaces
+import math # math.factorial
 
 """
 # Coordinate Systems for `.csv` and `print(numpy)`
@@ -29,7 +30,7 @@ class FakeIroningEnv(gym.Env):
         # Remember "Coordinate Systems for `.csv` and `print(numpy)`", above.
 
         self.inFileStr = inFileStr
-        self.inFile = np.genfromtxt(inFileStr, delimiter=',')
+        self.inFile = np.genfromtxt(inFileStr, delimiter=',', dtype=int)
 
         try:
             self.inFile[initX][initY]
@@ -39,11 +40,13 @@ class FakeIroningEnv(gym.Env):
             quit()
         self._initial_agent_location = np.array([initX, initY])
 
-        self.nS = self.inFile.shape[0] * \
-            self.inFile.shape[1]  # nS: number of states
+        self._cells = self.inFile.shape[0] * self.inFile.shape[1]
+        self.nS = self._cells * 3 * math.factorial(self._cells)  # nS: number of states
+
         self.observation_space = spaces.Box(
-            low=np.array([0, 0]),
-            high=np.array([self.inFile.shape[0], self.inFile.shape[1]]), dtype=int)
+            low=np.array([0, 0] + [0] * self._cells),
+            high=np.array([self.inFile.shape[0], self.inFile.shape[1]] + [2] * self._cells),
+            dtype=int)
 
         self._action_to_direction = {
             0: np.array([-1, 0]),  # UP
@@ -65,7 +68,7 @@ class FakeIroningEnv(gym.Env):
         self.clock = None
 
     def _get_obs(self):
-        return self._agent_location
+        return np.concatenate([self._agent_location, self.inFile.flatten()])
 
     def _get_info(self):
         return {
@@ -76,7 +79,7 @@ class FakeIroningEnv(gym.Env):
         # We need the following line to seed self.np_random.
         super().reset(seed=seed)
 
-        self.inFile = np.genfromtxt(self.inFileStr, delimiter=',')
+        self.inFile = np.genfromtxt(self.inFileStr, delimiter=',', dtype=int)
 
         self._agent_location = self._initial_agent_location
 
@@ -123,7 +126,7 @@ class FakeIroningEnv(gym.Env):
             quit()
 
         if not np.any(self.inFile == 2):
-            print('FakeIroningEnv.step: done yay!')
+            #print('FakeIroningEnv.step: done yay!')
             reward = 1.0
             terminated = True
 
@@ -183,12 +186,12 @@ class FakeIroningEnv(gym.Env):
                 # -- Skip box if map indicates a 0
                 if self.inFile[iX][iY] == 0:
                     continue
-                
+
                 if self.inFile[iX][iY] == 1:
                     pygame.draw.rect(canvas,
                                      COLOR_OK,
                                      pygame.Rect(self.cellWidth*iY, self.cellHeight*iX, self.cellWidth, self.cellHeight))
-                
+
                 if self.inFile[iX][iY] == 2:
                     pygame.draw.rect(canvas,
                                      COLOR_PENDING,
