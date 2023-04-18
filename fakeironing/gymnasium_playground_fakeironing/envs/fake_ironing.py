@@ -22,7 +22,7 @@ COLOR_ROBOT = (255, 0, 0)
 
 
 class FakeIroningEnv(gym.Env):
-    metadata = {"render_modes": ["human", "text"], "render_fps": 4}
+    metadata = {"render_modes": ["human", "text", "rgb_array"], "render_fps": 4}
 
     def __init__(self, render_mode=None, inFileStr='map1.csv', initX=2, initY=2, desired_reward=1.0):
 
@@ -54,9 +54,10 @@ class FakeIroningEnv(gym.Env):
             4: np.array([1, 0]),  # DOWN
             5: np.array([1, -1]),  # DOWN_LEFT
             6: np.array([0, -1]),  # LEFT
-            7: np.array([-1, -1])  # UP_LEFT
+            7: np.array([-1, -1]),  # UP_LEFT
+            8: np.array([0, 0])  # STAY
         }
-        self.nA = 8  # nA: number of actions
+        self.nA = len(self._action_to_direction)  # nA: number of actions
         self.action_space = spaces.Discrete(self.nA)
 
         self._stacked_reward = 0
@@ -65,6 +66,7 @@ class FakeIroningEnv(gym.Env):
         self.render_mode = render_mode
 
         self.window = None
+        self.canvas = None
         self.clock = None
 
     def _get_obs(self):
@@ -138,7 +140,7 @@ class FakeIroningEnv(gym.Env):
 
     def render(self):
         #print('FakeIroningEnv.render', self.render_mode)
-        if self.render_mode == "human":
+        if self.render_mode == "human" or self.render_mode == "rgb_array":
             return self._render_pygame()
         if self.render_mode == "text":
             return self._render_text()
@@ -151,7 +153,6 @@ class FakeIroningEnv(gym.Env):
         print(viewer)
 
     def _render_pygame(self):
-
         if self.window is None:
             inFileAspectRatio = self.inFile.shape[1] / self.inFile.shape[0]
             print('inFileAspectRatio', inFileAspectRatio)
@@ -177,8 +178,10 @@ class FakeIroningEnv(gym.Env):
         if self.clock is None:
             self.clock = pygame.time.Clock()
 
-        canvas = pygame.Surface((self.WINDOW_WIDTH, self.WINDOW_HEIGHT))
-        canvas.fill(COLOR_BACKGROUND)
+        if self.canvas is None:
+            self.canvas = pygame.Surface((self.WINDOW_WIDTH, self.WINDOW_HEIGHT))
+
+        self.canvas.fill(COLOR_BACKGROUND)
         for iX in range(self.inFile.shape[0]):
             # print "iX:",iX
             for iY in range(self.inFile.shape[1]):
@@ -189,27 +192,33 @@ class FakeIroningEnv(gym.Env):
                     continue
 
                 if self.inFile[iX][iY] == 1:
-                    pygame.draw.rect(canvas,
+                    pygame.draw.rect(self.canvas,
                                      COLOR_OK,
                                      pygame.Rect(self.cellWidth*iY, self.cellHeight*iX, self.cellWidth, self.cellHeight))
 
                 if self.inFile[iX][iY] == 2:
-                    pygame.draw.rect(canvas,
+                    pygame.draw.rect(self.canvas,
                                      COLOR_PENDING,
                                      pygame.Rect(self.cellWidth*iY, self.cellHeight*iX, self.cellWidth, self.cellHeight))
-                pygame.draw.rect(canvas, COLOR_ROBOT,
+                pygame.draw.rect(self.canvas, COLOR_ROBOT,
                     pygame.Rect(self.cellWidth*self._agent_location[1]+self.cellWidth/4.0, self.cellHeight*self._agent_location[0]+self.cellHeight/4.0, self.cellWidth/2.0, self.cellHeight/2.0))
 
-        # The following line copies our drawings from `canvas` to the
+        # The following line copies our drawings from `self.canvas` to the
         # visible window.
-        self.window.blit(canvas, canvas.get_rect())
-        pygame.event.pump()
-        pygame.display.update()
+        self.window.blit(self.canvas, self.canvas.get_rect())
 
-        # We need to ensure that human-rendering occurs at the predefined framerate.
-        # The following line will automatically add a delay to keep the
-        # framerate stable.
-        self.clock.tick(self.metadata["render_fps"])
+        if self.render_mode == "rgb_array":
+            return np.transpose(
+                np.array(pygame.surfarray.pixels3d(self.window)), axes=(1, 0, 2)
+            )
+        else:
+            pygame.event.pump()
+            pygame.display.update()
+
+            # We need to ensure that human-rendering occurs at the predefined framerate.
+            # The following line will automatically add a delay to keep the
+            # framerate stable.
+            self.clock.tick(self.metadata["render_fps"])
 
     def close(self):
         print('FakeIroningEnv.close')
