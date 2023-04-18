@@ -24,12 +24,13 @@ COLOR_ROBOT = (255, 0, 0)
 class FakeIroningEnv(gym.Env):
     metadata = {"render_modes": ["human", "text"], "render_fps": 4}
 
-    def __init__(self, render_mode=None, inFileStr='map1.csv', initX=2, initY=2):
+    def __init__(self, render_mode=None, inFileStr='map1.csv', initX=2, initY=2, desired_reward=1.0):
 
         # Remember "Coordinate Systems for `.csv` and `print(numpy)`", above.
 
         self.inFileStr = inFileStr
-        self.inFile = np.genfromtxt(inFileStr, delimiter=',')
+        self.inFile = np.genfromtxt(inFileStr, delimiter=',', dtype=int)
+        self.desired_reward = desired_reward
 
         try:
             self.inFile[initX][initY]
@@ -127,9 +128,7 @@ class FakeIroningEnv(gym.Env):
             terminated = True
             quit()
 
-        if not np.any(self.inFile == 2):
-            #print('FakeIroningEnv.step: done yay!')
-            reward = 1000.0
+        if reward >= self.desired_reward or not np.any(self.inFile == 2):
             terminated = True
 
         observation = self._get_obs()
