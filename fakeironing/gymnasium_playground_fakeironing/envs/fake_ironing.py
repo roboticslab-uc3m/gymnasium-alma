@@ -61,6 +61,8 @@ class FakeIroningEnv(gym.Env):
         self.nA = 8  # nA: number of actions
         self.action_space = spaces.Discrete(self.nA)
 
+        self._stacked_reward = 0
+
         assert render_mode is None or render_mode in self.metadata["render_modes"]
         self.render_mode = render_mode
 
@@ -89,6 +91,8 @@ class FakeIroningEnv(gym.Env):
         observation = self._get_obs()
         info = self._get_info()
 
+        self._stacked_reward = 0
+
         self.render()
 
         return observation, info
@@ -109,16 +113,17 @@ class FakeIroningEnv(gym.Env):
 
         if candidate_state_tag == 0:  # void
             self._agent_location = candidate_state
-            reward = -0.5
+            reward = -1
             terminated = True
         elif candidate_state_tag == 1:  # ok
             self._agent_location = candidate_state
-            reward = 0
+            reward = self._stacked_reward
             terminated = False
         elif candidate_state_tag == 2:  # pending
             self._agent_location = candidate_state
             self.inFile[candidate_state[0]][candidate_state[1]] = 1
-            reward = 0.5
+            self._stacked_reward += 1
+            reward = self._stacked_reward
             terminated = False
         else:
             print('FakeIroningEnv.step: found wicked tag, please review!')
@@ -127,7 +132,7 @@ class FakeIroningEnv(gym.Env):
 
         if not np.any(self.inFile == 2):
             #print('FakeIroningEnv.step: done yay!')
-            reward = 1.0
+            reward = 1000.0
             terminated = True
 
         observation = self._get_obs()
