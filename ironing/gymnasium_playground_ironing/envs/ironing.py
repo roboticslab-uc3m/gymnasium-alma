@@ -1,6 +1,5 @@
 import gymnasium as gym
 import numpy as np
-import pygame
 from gymnasium import spaces
 
 """
@@ -13,12 +12,6 @@ X points down (rows); Y points right (columns); Z would point outwards.
 v
 X (rows: self.inFile.shape[0]; provides the height in pygame)
 """
-
-MAX_WINDOW_WIDTH, MAX_WINDOW_HEIGHT = 1920, 1080
-COLOR_BACKGROUND = (0, 0, 0)
-COLOR_OK = (255, 255, 255)
-COLOR_PENDING = (0, 0, 255)
-COLOR_ROBOT = (255, 0, 0)
 
 
 class IroningEnv(gym.Env):
@@ -60,9 +53,6 @@ class IroningEnv(gym.Env):
 
         assert render_mode is None or render_mode in self.metadata["render_modes"]
         self.render_mode = render_mode
-
-        self.window = None
-        self.clock = None
 
     def _get_obs(self):
         return self._agent_location
@@ -142,73 +132,18 @@ class IroningEnv(gym.Env):
             pass
 
     def _render_text(self):
-        viewer = np.copy(self.inFile)  # Force a deep copy for rendering.
-        viewer[self._agent_location[0], self._agent_location[1]] = 2
-        print(viewer)
+        #viewer = np.copy(self.inFile)  # Force a deep copy for rendering.
+        #viewer[self._agent_location[0], self._agent_location[1]] = 2
+        #print(viewer)
+        pass
 
     def _render_pygame(self):
-
-        if self.window is None:
-            inFileAspectRatio = self.inFile.shape[1] / self.inFile.shape[0]
-            print('inFileAspectRatio', inFileAspectRatio)
-            maxWindowAspectRatio = MAX_WINDOW_WIDTH / MAX_WINDOW_HEIGHT
-            print('maxWindowAspectRatio', maxWindowAspectRatio)
-            if inFileAspectRatio == maxWindowAspectRatio:
-                self.WINDOW_WIDTH = MAX_WINDOW_WIDTH
-                self.WINDOW_HEIGHT = MAX_WINDOW_HEIGHT
-            elif inFileAspectRatio > maxWindowAspectRatio:
-                print("inFileAspectRatio > maxWindowAspectRatio (landscape)")
-                self.WINDOW_WIDTH = MAX_WINDOW_WIDTH  # same
-                self.WINDOW_HEIGHT = MAX_WINDOW_WIDTH / inFileAspectRatio
-            elif inFileAspectRatio < maxWindowAspectRatio:
-                print("inFileAspectRatio > maxWindowAspectRatio (portrait)")
-                self.WINDOW_HEIGHT = MAX_WINDOW_HEIGHT  # same
-                self.WINDOW_WIDTH = MAX_WINDOW_HEIGHT * inFileAspectRatio
-            pygame.init()
-            pygame.display.init()
-            self.window = pygame.display.set_mode(
-                (self.WINDOW_WIDTH, self.WINDOW_HEIGHT))
-            self.cellWidth = self.WINDOW_WIDTH/self.inFile.shape[1]
-            self.cellHeight = self.WINDOW_HEIGHT/self.inFile.shape[0]
-        if self.clock is None:
-            self.clock = pygame.time.Clock()
-
-        canvas = pygame.Surface((self.WINDOW_WIDTH, self.WINDOW_HEIGHT))
-        canvas.fill(COLOR_BACKGROUND)
-        for iX in range(self.inFile.shape[0]):
-            # print "iX:",iX
-            for iY in range(self.inFile.shape[1]):
-                # print "* iY:",iY
-
-                # -- Skip box if map indicates a 0
-                if self.inFile[iX][iY] == 0:
-                    continue
-                
-                if self.inFile[iX][iY] == 1:
-                    pygame.draw.rect(canvas,
-                                     COLOR_OK,
-                                     pygame.Rect(self.cellWidth*iY, self.cellHeight*iX, self.cellWidth, self.cellHeight))
-                
-                if self.inFile[iX][iY] == 2:
-                    pygame.draw.rect(canvas,
-                                     COLOR_PENDING,
-                                     pygame.Rect(self.cellWidth*iY, self.cellHeight*iX, self.cellWidth, self.cellHeight))
-                pygame.draw.rect(canvas, COLOR_ROBOT,
-                    pygame.Rect(self.cellWidth*self._agent_location[1]+self.cellWidth/4.0, self.cellHeight*self._agent_location[0]+self.cellHeight/4.0, self.cellWidth/2.0, self.cellHeight/2.0))
-
-        # The following line copies our drawings from `canvas` to the
-        # visible window.
-        self.window.blit(canvas, canvas.get_rect())
-        pygame.event.pump()
-        pygame.display.update()
+        pass
+        #if self.window is None: # init
 
         # We need to ensure that human-rendering occurs at the predefined framerate.
         # The following line will automatically add a delay to keep the
         # framerate stable.
-        self.clock.tick(self.metadata["render_fps"])
 
     def close(self):
         print('IroningEnv.close')
-        if self.window is not None:
-            pygame.display.quit()
-            pygame.quit()
