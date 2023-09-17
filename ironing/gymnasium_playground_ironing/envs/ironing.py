@@ -2,6 +2,17 @@ import gymnasium as gym
 import numpy as np
 from gymnasium import spaces
 
+from time import sleep
+
+import yarp
+import roboticslab_kinematics_dynamics as kd
+
+DEFAULT_HEAD_PAN = -45.0
+DEFAULT_HEAD_TILT = 0.0
+
+DEFAULT_TRUNK_PAN = 52.6225703136347036093 # 45.0
+DEFAULT_TRUNK_TILT = 11.3726854400002164169 # 30.0
+
 """
 # Coordinate Systems for `.csv` and `print(numpy)`
 
@@ -18,6 +29,12 @@ class IroningEnv(gym.Env):
     metadata = {"render_modes": ["human", "text"], "render_fps": 4}
 
     def __init__(self, render_mode=None, inFileStr='map1.csv', initX=2, initY=2):
+
+        #-- Prepare YARP
+        yarp.Network.init()
+        if not yarp.Network.checkNetwork():
+            print('[error] Please try running yarp server')
+            quit()
 
         # Remember "Coordinate Systems for `.csv` and `print(numpy)`", above.
 
