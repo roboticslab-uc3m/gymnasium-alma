@@ -196,14 +196,14 @@ class IroningEnv(gym.Env):
             7: np.array([-1, -1])  # UP_LEFT
         }
         self._action_to_direction_robot = {
-            0: np.array([-1, 0]),  # UP
-            1: np.array([-1, 1]),  # UP_RIGHT
-            2: np.array([0, 1]),  # RIGHT
-            3: np.array([1, 1]),  # DOWN_RIGHT
-            4: np.array([1, 0]),  # DOWN
-            5: np.array([1, -1]),  # DOWN_LEFT
-            6: np.array([0, -1]),  # LEFT
-            7: np.array([-1, -1])  # UP_LEFT
+            0: np.array([0, -0.5, 0,   0, 0, 0]),  # UP
+            1: np.array([-0.5, -0.5, 0,   0, 0, 0]),  # UP_RIGHT
+            2: np.array([-0.5, 0, 0,   0, 0, 0]),  # RIGHT
+            3: np.array([-0.5, 0.5, 0,   0, 0, 0]),  # DOWN_RIGHT
+            4: np.array([0, 0.5, 0,   0, 0, 0]),  # DOWN
+            5: np.array([-0.5, 0.5, 0,   0, 0, 0]),  # DOWN_LEFT
+            6: np.array([-0.5, 0, 0,   0, 0, 0]),  # LEFT
+            7: np.array([-0.5, -0.5, 0,   0, 0, 0])  # UP_LEFT
         }
         self.nA = 8  # nA: number of actions
         self.action_space = spaces.Discrete(self.nA)
