@@ -141,21 +141,30 @@ class IroningEnv(gym.Env):
 
         sleep(0.2)
         #xd = yarp.DVector([0.6, -0.15, 0.05, -0.5, 2.52, 0.24])
-        xd = yarp.DVector([0.6, -0.15, 0.0, -0.5, 2.52, 0.24])
-        print('>', '[%s]' % ', '.join(map(str, xd)))
-        if ccTRA.movl(xd):
-            print('< [ok]')
-            print('< [wait...]')
+        #xd = yarp.DVector([0.65, -0.15, 0.0, -0.5, 2.52, 0.24])
+        xds = [
+            [0.65, -0.17, 0.025, -0.5, 2.52, 0.24],
+            [0.65, -0.17, 0.0, -0.5, 2.52, 0.24]
+        ]
+
+        for i in range(len(xds)):
             sleep(0.2)
-            ok = ccTRA.wait()
-            print('> ok', ok)
-            print('> stat')
-            x = yarp.DVector()
-            ret, state, ts = ccTRA.stat(x)
-            print('<', yarp.decode(state), '[%s]' % ', '.join(map(str, x)))
-        else:
-            print('< [fail]')
-            quit()
+            print('-- movement ' + str(i + 1) + ':')
+            xd = yarp.DVector(xds[i])
+            print('>', '[%s]' % ', '.join(map(str, xd)))
+            if ccTRA.movl(xd):
+                print('< [ok]')
+                print('< [wait...]')
+                sleep(0.2)
+                ok = ccTRA.wait()
+                print('> ok', ok)
+                print('> stat')
+                x = yarp.DVector()
+                ret, state, ts = ccTRA.stat(x)
+                print('<', yarp.decode(state), '[%s]' % ', '.join(map(str, x)))
+            else:
+                print('< [fail]')
+                quit()
 
         # Remember "Coordinate Systems for `.csv` and `print(numpy)`", above.
 
