@@ -10,8 +10,8 @@ import roboticslab_kinematics_dynamics as kd
 DEFAULT_HEAD_PAN = -45.0
 DEFAULT_HEAD_TILT = 0.0
 
-DEFAULT_TRUNK_PAN = 78.9238278293625512561 # 45.0
-DEFAULT_TRUNK_TILT = 8.96674593678839748634 # 30.0
+DEFAULT_TRUNK_PAN = 45.41 # 45.0
+DEFAULT_TRUNK_TILT = 58.08 # 30.0
 
 """
 # Coordinate Systems for `.csv` and `print(numpy)`
@@ -123,16 +123,16 @@ class IroningEnv(gym.Env):
 
         # 0.6 -0.15 0.05 -0.5 2.52 0.24
         q = yarp.DVector(axesRA,0.0)
-        q[0] = 44.2389377815678201955
-        q[1] = -6.0841097911656687458
-        q[2] = -47.9942380845816387591
-        q[3] = -95.3050465617414204189
-        q[4] = -49.076395130696447211
-        q[5] = 30.715123987233646119
+        q[0] = -37.8777759318362114982
+        q[1] = -75.4999999999999857891
+        q[2] = 3.27126779640313225528
+        q[3] = -70.8303432830651615859
+        q[4] = -88.2557204075698962242
+        q[5] = 29.4033175788557450403
         posRA.positionMove(q)
         while not posRA.checkMotionDone():
             sleep(0.1)
-
+        
         sleep(0.2)
         print('> stat')
         x = yarp.DVector()
@@ -143,8 +143,8 @@ class IroningEnv(gym.Env):
         #xd = yarp.DVector([0.6, -0.15, 0.05, -0.5, 2.52, 0.24])
         #xd = yarp.DVector([0.65, -0.15, 0.0, -0.5, 2.52, 0.24])
         xds = [
-            [0.65, -0.17, 0.025, -0.5, 2.52, 0.24],
-            [0.65, -0.17, 0.0, -0.5, 2.52, 0.24]
+            [0.9, -0.17, 0.05, -0.5, 2.52, 0.24],
+            [0.9, -0.17, 0.0, -0.5, 2.52, 0.24]
         ]
 
         for i in range(len(xds)):
@@ -152,7 +152,7 @@ class IroningEnv(gym.Env):
             print('-- movement ' + str(i + 1) + ':')
             xd = yarp.DVector(xds[i])
             print('>', '[%s]' % ', '.join(map(str, xd)))
-            if ccTRA.movl(xd):
+            if ccTRA.movj(xd):
                 print('< [ok]')
                 print('< [wait...]')
                 sleep(0.2)
@@ -186,6 +186,16 @@ class IroningEnv(gym.Env):
             high=np.array([self.inFile.shape[0], self.inFile.shape[1]]), dtype=int)
 
         self._action_to_direction = {
+            0: np.array([-1, 0]),  # UP
+            1: np.array([-1, 1]),  # UP_RIGHT
+            2: np.array([0, 1]),  # RIGHT
+            3: np.array([1, 1]),  # DOWN_RIGHT
+            4: np.array([1, 0]),  # DOWN
+            5: np.array([1, -1]),  # DOWN_LEFT
+            6: np.array([0, -1]),  # LEFT
+            7: np.array([-1, -1])  # UP_LEFT
+        }
+        self._action_to_direction_robot = {
             0: np.array([-1, 0]),  # UP
             1: np.array([-1, 1]),  # UP_RIGHT
             2: np.array([0, 1]),  # RIGHT
