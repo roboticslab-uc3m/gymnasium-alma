@@ -10,8 +10,8 @@ import roboticslab_kinematics_dynamics as kd
 DEFAULT_HEAD_PAN = -45.0
 DEFAULT_HEAD_TILT = 0.0
 
-DEFAULT_TRUNK_PAN = 52.6225703136347036093 # 45.0
-DEFAULT_TRUNK_TILT = 11.3726854400002164169 # 30.0
+DEFAULT_TRUNK_PAN = 78.9238278293625512561 # 45.0
+DEFAULT_TRUNK_TILT = 8.96674593678839748634 # 30.0
 
 """
 # Coordinate Systems for `.csv` and `print(numpy)`
@@ -121,13 +121,14 @@ class IroningEnv(gym.Env):
         while not posRA.checkMotionDone():
             sleep(0.1)
 
+        # 0.6 -0.15 0.05 -0.5 2.52 0.24
         q = yarp.DVector(axesRA,0.0)
-        q[0] = 10.5923737193064262385
-        q[1] = -48.1872899894004476096
-        q[2] = -12.2954651161971284523
-        q[3] = -57.3412518945380753621
-        q[4] = -62.5312112926755006015 
-        q[5] = 23.2866408525290893294
+        q[0] = 44.2389377815678201955
+        q[1] = -6.0841097911656687458
+        q[2] = -47.9942380845816387591
+        q[3] = -95.3050465617414204189
+        q[4] = -49.076395130696447211
+        q[5] = 30.715123987233646119
         posRA.positionMove(q)
         while not posRA.checkMotionDone():
             sleep(0.1)
@@ -137,6 +138,24 @@ class IroningEnv(gym.Env):
         x = yarp.DVector()
         ret, state, ts = ccTRA.stat(x)
         print('<', yarp.decode(state), '[%s]' % ', '.join(map(str, x)))
+
+        sleep(0.2)
+        #xd = yarp.DVector([0.6, -0.15, 0.05, -0.5, 2.52, 0.24])
+        xd = yarp.DVector([0.6, -0.15, 0.0, -0.5, 2.52, 0.24])
+        print('>', '[%s]' % ', '.join(map(str, xd)))
+        if ccTRA.movl(xd):
+            print('< [ok]')
+            print('< [wait...]')
+            sleep(0.2)
+            ok = ccTRA.wait()
+            print('> ok', ok)
+            print('> stat')
+            x = yarp.DVector()
+            ret, state, ts = ccTRA.stat(x)
+            print('<', yarp.decode(state), '[%s]' % ', '.join(map(str, x)))
+        else:
+            print('< [fail]')
+            quit()
 
         # Remember "Coordinate Systems for `.csv` and `print(numpy)`", above.
 
