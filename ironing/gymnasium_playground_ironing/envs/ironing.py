@@ -79,7 +79,7 @@ class IroningEnv(gym.Env):
         if not ddccTRA.isValid():
             print('[error] Cannot connect to: /teoSim/trunkAndRightArm/CartesianControl')
             quit()
-        ccTRA = kd.viewICartesianControl(ddccTRA)
+        self.ccTRA = kd.viewICartesianControl(ddccTRA)
 
         #-- Pre-prog
         posT.positionMove(0, DEFAULT_TRUNK_PAN)
@@ -136,7 +136,7 @@ class IroningEnv(gym.Env):
         sleep(0.2)
         print('> stat')
         x = yarp.DVector()
-        ret, state, ts = ccTRA.stat(x)
+        ret, state, ts = self.ccTRA.stat(x)
         print('<', yarp.decode(state), '[%s]' % ', '.join(map(str, x)))
 
         sleep(0.2)
@@ -152,15 +152,15 @@ class IroningEnv(gym.Env):
             print('-- movement ' + str(i + 1) + ':')
             xd = yarp.DVector(xds[i])
             print('>', '[%s]' % ', '.join(map(str, xd)))
-            if ccTRA.movj(xd):
+            if self.ccTRA.movj(xd):
                 print('< [ok]')
                 print('< [wait...]')
                 sleep(0.2)
-                ok = ccTRA.wait()
+                ok = self.ccTRA.wait()
                 print('> ok', ok)
                 print('> stat')
                 x = yarp.DVector()
-                ret, state, ts = ccTRA.stat(x)
+                ret, state, ts = self.ccTRA.stat(x)
                 print('<', yarp.decode(state), '[%s]' % ', '.join(map(str, x)))
             else:
                 print('< [fail]')
