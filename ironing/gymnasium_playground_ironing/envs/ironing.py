@@ -41,33 +41,33 @@ class IroningEnv(gym.Env):
         optionsH.put('device','remote_controlboard')
         optionsH.put('remote','/teoSim/head')
         optionsH.put('local','/alma/teoSim/head')
-        ddH = yarp.PolyDriver(optionsH)
-        if not ddH.isValid():
+        self.ddH = yarp.PolyDriver(optionsH)
+        if not self.ddH.isValid():
             print('[error] Cannot connect to: /teoSim/head')
             quit()
-        posH = ddH.viewIPositionControl()
+        posH = self.ddH.viewIPositionControl()
 
         #-- Prepare Trunk (T)
         optionsT = yarp.Property()
         optionsT.put('device','remote_controlboard')
         optionsT.put('remote','/teoSim/trunk')
         optionsT.put('local','/alma/teoSim/trunk')
-        ddT = yarp.PolyDriver(optionsT)
-        if not ddT.isValid():
+        self.ddT = yarp.PolyDriver(optionsT)
+        if not self.ddT.isValid():
             print('[error] Cannot connect to: /teoSim/trunk')
             quit()
-        posT = ddT.viewIPositionControl()
+        posT = self.ddT.viewIPositionControl()
 
         #-- Prepare Right Arm (RA)
         optionsRA = yarp.Property()
         optionsRA.put('device','remote_controlboard')
         optionsRA.put('remote','/teoSim/rightArm')
         optionsRA.put('local','/alma/teoSim/rightArm')
-        ddRA = yarp.PolyDriver(optionsRA)
-        if not ddRA.isValid():
+        self.ddRA = yarp.PolyDriver(optionsRA)
+        if not self.ddRA.isValid():
             print('[error] Cannot connect to: /teoSim/rightArm')
             quit()
-        posRA = ddRA.viewIPositionControl()
+        posRA = self.ddRA.viewIPositionControl()
         axesRA = posRA.getAxes()
 
         #-- Prepare Cartesian Control T and RA (ccTRA)
@@ -75,11 +75,11 @@ class IroningEnv(gym.Env):
         optionsCCTRA.put('device', 'CartesianControlClient')
         optionsCCTRA.put('cartesianRemote', '/teoSim/trunkAndRightArm/CartesianControl')
         optionsCCTRA.put('cartesianLocal', '/alma/teoSim/trunkAndRightArm/CartesianControl')
-        ddccTRA = yarp.PolyDriver(optionsCCTRA)
-        if not ddccTRA.isValid():
+        self.ddccTRA = yarp.PolyDriver(optionsCCTRA)
+        if not self.ddccTRA.isValid():
             print('[error] Cannot connect to: /teoSim/trunkAndRightArm/CartesianControl')
             quit()
-        self.ccTRA = kd.viewICartesianControl(ddccTRA)
+        self.ccTRA = kd.viewICartesianControl(self.ddccTRA)
 
         #-- Pre-prog
         posT.positionMove(0, DEFAULT_TRUNK_PAN)
@@ -162,6 +162,7 @@ class IroningEnv(gym.Env):
                 x = yarp.DVector()
                 ret, state, ts = self.ccTRA.stat(x)
                 print('<', yarp.decode(state), '[%s]' % ', '.join(map(str, x)))
+                self._agent_location_robot = x
             else:
                 print('< [fail]')
                 quit()
@@ -216,7 +217,9 @@ class IroningEnv(gym.Env):
 
     def _get_info(self):
         return {
-            "distance": 0
+            "distance": 0,
+            "init": self._agent_location,
+            "init_robot": self._agent_location_robot
         }
 
     def reset(self, seed=None, options=None):
@@ -241,6 +244,7 @@ class IroningEnv(gym.Env):
         #print('IroningEnv.step', action)
 
         candidate_state = self._agent_location + self._action_to_direction[action]
+        candidate_state = self._agent_location_robot + self._action_to_direction_robot[action]
         try:
             candidate_state_tag = self.inFile[candidate_state[0]][candidate_state[1]]
         except IndexError as e:
