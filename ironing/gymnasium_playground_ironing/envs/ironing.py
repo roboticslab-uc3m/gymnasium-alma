@@ -162,7 +162,7 @@ class IroningEnv(gym.Env):
                 x = yarp.DVector()
                 ret, state, ts = self.ccTRA.stat(x)
                 print('<', yarp.decode(state), '[%s]' % ', '.join(map(str, x)))
-                self._agent_location_robot = x
+                self._agent_location_robot = np.array(x)
             else:
                 print('< [fail]')
                 quit()
