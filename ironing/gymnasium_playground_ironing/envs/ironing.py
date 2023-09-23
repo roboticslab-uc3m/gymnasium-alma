@@ -166,6 +166,7 @@ class IroningEnv(gym.Env):
             else:
                 print('< [fail]')
                 quit()
+        sleep(0.2)
 
         # Remember "Coordinate Systems for `.csv` and `print(numpy)`", above.
 
@@ -196,15 +197,16 @@ class IroningEnv(gym.Env):
             6: np.array([0, -1]),  # LEFT
             7: np.array([-1, -1])  # UP_LEFT
         }
+        d_r = 0.05 # delta_robot
         self._action_to_direction_robot = {
-            0: np.array([0, -0.5, 0,   0, 0, 0]),  # UP
-            1: np.array([-0.5, -0.5, 0,   0, 0, 0]),  # UP_RIGHT
-            2: np.array([-0.5, 0, 0,   0, 0, 0]),  # RIGHT
-            3: np.array([-0.5, 0.5, 0,   0, 0, 0]),  # DOWN_RIGHT
-            4: np.array([0, 0.5, 0,   0, 0, 0]),  # DOWN
-            5: np.array([-0.5, 0.5, 0,   0, 0, 0]),  # DOWN_LEFT
-            6: np.array([-0.5, 0, 0,   0, 0, 0]),  # LEFT
-            7: np.array([-0.5, -0.5, 0,   0, 0, 0])  # UP_LEFT
+            0: np.array([0, -d_r, 0,   0, 0, 0]),  # UP
+            1: np.array([-d_r, -d_r, 0,   0, 0, 0]),  # UP_RIGHT
+            2: np.array([-d_r, 0, 0,   0, 0, 0]),  # RIGHT
+            3: np.array([-d_r, d_r, 0,   0, 0, 0]),  # DOWN_RIGHT
+            4: np.array([0, d_r, 0,   0, 0, 0]),  # DOWN
+            5: np.array([-d_r, d_r, 0,   0, 0, 0]),  # DOWN_LEFT
+            6: np.array([-d_r, 0, 0,   0, 0, 0]),  # LEFT
+            7: np.array([-d_r, -d_r, 0,   0, 0, 0])  # UP_LEFT
         }
         self.nA = 8  # nA: number of actions
         self.action_space = spaces.Discrete(self.nA)
@@ -271,6 +273,26 @@ class IroningEnv(gym.Env):
         else:
             print('IroningEnv.step: found wicked tag, please review!')
             terminated = True
+            quit()
+
+        print('-- movement')
+        xd = yarp.DVector([0.9, -0.17, 0.0, -0.5, 2.52, 0.24])
+        xd[0] = candidate_state_robot[0]
+        xd[1] = candidate_state_robot[1]
+        print('>', '[%s]' % ', '.join(map(str, xd)))
+        if self.ccTRA.movj(xd):
+            print('< [ok]')
+            print('< [wait...]')
+            sleep(0.2)
+            ok = self.ccTRA.wait()
+            print('> ok', ok)
+            print('> stat')
+            x = yarp.DVector()
+            ret, state, ts = self.ccTRA.stat(x)
+            print('<', yarp.decode(state), '[%s]' % ', '.join(map(str, x)))
+            self._agent_location_robot = np.array(x)
+        else:
+            print('< [fail]')
             quit()
 
         if not np.any(self.inFile == 2):
