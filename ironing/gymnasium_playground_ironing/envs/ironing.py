@@ -244,7 +244,7 @@ class IroningEnv(gym.Env):
         #print('IroningEnv.step', action)
 
         candidate_state = self._agent_location + self._action_to_direction[action]
-        candidate_state = self._agent_location_robot + self._action_to_direction_robot[action]
+        candidate_state_robot = self._agent_location_robot + self._action_to_direction_robot[action]
         try:
             candidate_state_tag = self.inFile[candidate_state[0]][candidate_state[1]]
         except IndexError as e:
