@@ -2,6 +2,7 @@ import gymnasium as gym
 import numpy as np
 from gymnasium import spaces
 
+import sys # quit()
 from time import sleep
 
 import yarp
@@ -147,10 +148,30 @@ class IroningEnv(gym.Env):
             [0.9, -0.17, 0.0, -0.5, 2.52, 0.24]
         ]
 
-        for i in range(len(xds)):
+        sleep(0.2)
+        print('-- movement 0 J')
+        xd = yarp.DVector(xds[0])
+        print('>', '[%s]' % ', '.join(map(str, xd)))
+        if self.ccTRA.movj(xd):
+            print('< [ok]')
+            print('< [wait...]')
             sleep(0.2)
-            print('-- movement ' + str(i + 1) + ':')
-            xd = yarp.DVector(xds[i])
+            ok = self.ccTRA.wait()
+            print('> ok', ok)
+            print('> stat')
+            x = yarp.DVector()
+            ret, state, ts = self.ccTRA.stat(x)
+            print('<', yarp.decode(state), '[%s]' % ', '.join(map(str, x)))
+            self._agent_location_robot = np.array(x)
+        else:
+            print('< [fail]')
+            quit()
+        sleep(0.2)
+
+        done = False
+        xd = yarp.DVector(xds[1])
+        while not done:
+            print('-- movement 1 L')
             print('>', '[%s]' % ', '.join(map(str, xd)))
             if self.ccTRA.movj(xd):
                 print('< [ok]')
@@ -163,6 +184,8 @@ class IroningEnv(gym.Env):
                 ret, state, ts = self.ccTRA.stat(x)
                 print('<', yarp.decode(state), '[%s]' % ', '.join(map(str, x)))
                 self._agent_location_robot = np.array(x)
+                if x[2] < 0.01:
+                    done = True
             else:
                 print('< [fail]')
                 quit()
@@ -204,9 +227,9 @@ class IroningEnv(gym.Env):
             2: np.array([-d_r, 0, 0,   0, 0, 0]),  # RIGHT
             3: np.array([-d_r, d_r, 0,   0, 0, 0]),  # DOWN_RIGHT
             4: np.array([0, d_r, 0,   0, 0, 0]),  # DOWN
-            5: np.array([-d_r, d_r, 0,   0, 0, 0]),  # DOWN_LEFT
-            6: np.array([-d_r, 0, 0,   0, 0, 0]),  # LEFT
-            7: np.array([-d_r, -d_r, 0,   0, 0, 0])  # UP_LEFT
+            5: np.array([d_r, d_r, 0,   0, 0, 0]),  # DOWN_LEFT
+            6: np.array([d_r, 0, 0,   0, 0, 0]),  # LEFT
+            7: np.array([d_r, -d_r, 0,   0, 0, 0])  # UP_LEFT
         }
         self.nA = 8  # nA: number of actions
         self.action_space = spaces.Discrete(self.nA)
