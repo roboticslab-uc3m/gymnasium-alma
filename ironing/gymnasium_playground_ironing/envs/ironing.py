@@ -2,6 +2,7 @@ import gymnasium as gym
 import numpy as np
 from gymnasium import spaces
 
+import sys # quit()
 from time import sleep
 
 import yarp
@@ -10,8 +11,8 @@ import roboticslab_kinematics_dynamics as kd
 DEFAULT_HEAD_PAN = -45.0
 DEFAULT_HEAD_TILT = 0.0
 
-DEFAULT_TRUNK_PAN = 78.9238278293625512561 # 45.0
-DEFAULT_TRUNK_TILT = 8.96674593678839748634 # 30.0
+DEFAULT_TRUNK_PAN = 45.41 # 45.0
+DEFAULT_TRUNK_TILT = 58.08 # 30.0
 
 """
 # Coordinate Systems for `.csv` and `print(numpy)`
@@ -41,33 +42,33 @@ class IroningEnv(gym.Env):
         optionsH.put('device','remote_controlboard')
         optionsH.put('remote','/teoSim/head')
         optionsH.put('local','/alma/teoSim/head')
-        ddH = yarp.PolyDriver(optionsH)
-        if not ddH.isValid():
+        self.ddH = yarp.PolyDriver(optionsH)
+        if not self.ddH.isValid():
             print('[error] Cannot connect to: /teoSim/head')
             quit()
-        posH = ddH.viewIPositionControl()
+        posH = self.ddH.viewIPositionControl()
 
         #-- Prepare Trunk (T)
         optionsT = yarp.Property()
         optionsT.put('device','remote_controlboard')
         optionsT.put('remote','/teoSim/trunk')
         optionsT.put('local','/alma/teoSim/trunk')
-        ddT = yarp.PolyDriver(optionsT)
-        if not ddT.isValid():
+        self.ddT = yarp.PolyDriver(optionsT)
+        if not self.ddT.isValid():
             print('[error] Cannot connect to: /teoSim/trunk')
             quit()
-        posT = ddT.viewIPositionControl()
+        posT = self.ddT.viewIPositionControl()
 
         #-- Prepare Right Arm (RA)
         optionsRA = yarp.Property()
         optionsRA.put('device','remote_controlboard')
         optionsRA.put('remote','/teoSim/rightArm')
         optionsRA.put('local','/alma/teoSim/rightArm')
-        ddRA = yarp.PolyDriver(optionsRA)
-        if not ddRA.isValid():
+        self.ddRA = yarp.PolyDriver(optionsRA)
+        if not self.ddRA.isValid():
             print('[error] Cannot connect to: /teoSim/rightArm')
             quit()
-        posRA = ddRA.viewIPositionControl()
+        posRA = self.ddRA.viewIPositionControl()
         axesRA = posRA.getAxes()
 
         #-- Prepare Cartesian Control T and RA (ccTRA)
@@ -75,11 +76,11 @@ class IroningEnv(gym.Env):
         optionsCCTRA.put('device', 'CartesianControlClient')
         optionsCCTRA.put('cartesianRemote', '/teoSim/trunkAndRightArm/CartesianControl')
         optionsCCTRA.put('cartesianLocal', '/alma/teoSim/trunkAndRightArm/CartesianControl')
-        ddccTRA = yarp.PolyDriver(optionsCCTRA)
-        if not ddccTRA.isValid():
+        self.ddccTRA = yarp.PolyDriver(optionsCCTRA)
+        if not self.ddccTRA.isValid():
             print('[error] Cannot connect to: /teoSim/trunkAndRightArm/CartesianControl')
             quit()
-        ccTRA = kd.viewICartesianControl(ddccTRA)
+        self.ccTRA = kd.viewICartesianControl(self.ddccTRA)
 
         #-- Pre-prog
         posT.positionMove(0, DEFAULT_TRUNK_PAN)
@@ -123,48 +124,72 @@ class IroningEnv(gym.Env):
 
         # 0.6 -0.15 0.05 -0.5 2.52 0.24
         q = yarp.DVector(axesRA,0.0)
-        q[0] = 44.2389377815678201955
-        q[1] = -6.0841097911656687458
-        q[2] = -47.9942380845816387591
-        q[3] = -95.3050465617414204189
-        q[4] = -49.076395130696447211
-        q[5] = 30.715123987233646119
+        q[0] = -37.8777759318362114982
+        q[1] = -75.4999999999999857891
+        q[2] = 3.27126779640313225528
+        q[3] = -70.8303432830651615859
+        q[4] = -88.2557204075698962242
+        q[5] = 29.4033175788557450403
         posRA.positionMove(q)
         while not posRA.checkMotionDone():
             sleep(0.1)
-
+        
         sleep(0.2)
         print('> stat')
         x = yarp.DVector()
-        ret, state, ts = ccTRA.stat(x)
+        ret, state, ts = self.ccTRA.stat(x)
         print('<', yarp.decode(state), '[%s]' % ', '.join(map(str, x)))
 
         sleep(0.2)
         #xd = yarp.DVector([0.6, -0.15, 0.05, -0.5, 2.52, 0.24])
         #xd = yarp.DVector([0.65, -0.15, 0.0, -0.5, 2.52, 0.24])
         xds = [
-            [0.65, -0.17, 0.025, -0.5, 2.52, 0.24],
-            [0.65, -0.17, 0.0, -0.5, 2.52, 0.24]
+            [0.9, -0.17, 0.05, -0.5, 2.52, 0.24],
+            [0.9, -0.17, 0.0, -0.5, 2.52, 0.24]
         ]
 
-        for i in range(len(xds)):
+        sleep(0.2)
+        print('-- movement 0 J')
+        xd = yarp.DVector(xds[0])
+        print('>', '[%s]' % ', '.join(map(str, xd)))
+        if self.ccTRA.movj(xd):
+            print('< [ok]')
+            print('< [wait...]')
             sleep(0.2)
-            print('-- movement ' + str(i + 1) + ':')
-            xd = yarp.DVector(xds[i])
+            ok = self.ccTRA.wait()
+            print('> ok', ok)
+            print('> stat')
+            x = yarp.DVector()
+            ret, state, ts = self.ccTRA.stat(x)
+            print('<', yarp.decode(state), '[%s]' % ', '.join(map(str, x)))
+            self._agent_location_robot = np.array(x)
+        else:
+            print('< [fail]')
+            quit()
+        sleep(0.2)
+
+        done = False
+        xd = yarp.DVector(xds[1])
+        while not done:
+            print('-- movement 1 L')
             print('>', '[%s]' % ', '.join(map(str, xd)))
-            if ccTRA.movl(xd):
+            if self.ccTRA.movj(xd):
                 print('< [ok]')
                 print('< [wait...]')
                 sleep(0.2)
-                ok = ccTRA.wait()
+                ok = self.ccTRA.wait()
                 print('> ok', ok)
                 print('> stat')
                 x = yarp.DVector()
-                ret, state, ts = ccTRA.stat(x)
+                ret, state, ts = self.ccTRA.stat(x)
                 print('<', yarp.decode(state), '[%s]' % ', '.join(map(str, x)))
+                self._agent_location_robot = np.array(x)
+                if x[2] < 0.01:
+                    done = True
             else:
                 print('< [fail]')
                 quit()
+        sleep(0.2)
 
         # Remember "Coordinate Systems for `.csv` and `print(numpy)`", above.
 
@@ -195,6 +220,17 @@ class IroningEnv(gym.Env):
             6: np.array([0, -1]),  # LEFT
             7: np.array([-1, -1])  # UP_LEFT
         }
+        d_r = 0.05 # delta_robot
+        self._action_to_direction_robot = {
+            0: np.array([0, -d_r, 0,   0, 0, 0]),  # UP
+            1: np.array([-d_r, -d_r, 0,   0, 0, 0]),  # UP_RIGHT
+            2: np.array([-d_r, 0, 0,   0, 0, 0]),  # RIGHT
+            3: np.array([-d_r, d_r, 0,   0, 0, 0]),  # DOWN_RIGHT
+            4: np.array([0, d_r, 0,   0, 0, 0]),  # DOWN
+            5: np.array([d_r, d_r, 0,   0, 0, 0]),  # DOWN_LEFT
+            6: np.array([d_r, 0, 0,   0, 0, 0]),  # LEFT
+            7: np.array([d_r, -d_r, 0,   0, 0, 0])  # UP_LEFT
+        }
         self.nA = 8  # nA: number of actions
         self.action_space = spaces.Discrete(self.nA)
 
@@ -206,7 +242,9 @@ class IroningEnv(gym.Env):
 
     def _get_info(self):
         return {
-            "distance": 0
+            "distance": 0,
+            "init": self._agent_location,
+            "init_robot": self._agent_location_robot
         }
 
     def reset(self, seed=None, options=None):
@@ -231,6 +269,7 @@ class IroningEnv(gym.Env):
         #print('IroningEnv.step', action)
 
         candidate_state = self._agent_location + self._action_to_direction[action]
+        candidate_state_robot = self._agent_location_robot + self._action_to_direction_robot[action]
         try:
             candidate_state_tag = self.inFile[candidate_state[0]][candidate_state[1]]
         except IndexError as e:
@@ -257,6 +296,26 @@ class IroningEnv(gym.Env):
         else:
             print('IroningEnv.step: found wicked tag, please review!')
             terminated = True
+            quit()
+
+        print('-- movement')
+        xd = yarp.DVector([0.9, -0.17, 0.0, -0.5, 2.52, 0.24])
+        xd[0] = candidate_state_robot[0]
+        xd[1] = candidate_state_robot[1]
+        print('>', '[%s]' % ', '.join(map(str, xd)))
+        if self.ccTRA.movj(xd):
+            print('< [ok]')
+            print('< [wait...]')
+            sleep(0.2)
+            ok = self.ccTRA.wait()
+            print('> ok', ok)
+            print('> stat')
+            x = yarp.DVector()
+            ret, state, ts = self.ccTRA.stat(x)
+            print('<', yarp.decode(state), '[%s]' % ', '.join(map(str, x)))
+            self._agent_location_robot = np.array(x)
+        else:
+            print('< [fail]')
             quit()
 
         if not np.any(self.inFile == 2):
