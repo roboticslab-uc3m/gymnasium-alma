@@ -1,4 +1,4 @@
-# gymnasium-playground/gridworld
+# gymnasium-alma/gridworld
 
 ![assets/gymnasium_playground_GridWorld-v0.png](assets/gymnasium_playground_GridWorld-v0.png)
 

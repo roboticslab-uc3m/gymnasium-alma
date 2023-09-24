@@ -1,4 +1,4 @@
-# alma-gymnasium
+# gymnasium-alma
 
 - [bandit](bandit/)
 - [gridworld](gridworld/)

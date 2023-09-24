@@ -1,4 +1,4 @@
-# gymnasium-playground/ironing
+# gymnasium-alma/ironing
 
 ## Installation
 

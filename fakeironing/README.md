@@ -1,4 +1,4 @@
-# gymnasium-playground/fakeironing
+# gymnasium-alma/fakeironing
 
 ## Installation
 

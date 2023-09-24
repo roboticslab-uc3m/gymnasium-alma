@@ -1,4 +1,4 @@
-# gymnasium-playground/bandit
+# gymnasium-alma/bandit
 
 ## Installation
 
