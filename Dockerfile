@@ -1,6 +1,6 @@
 FROM ubuntu:22.04
 
-ARG SSL_DEBFILE="libssl1.1_1.1.1f-1ubuntu2.19_amd64.deb"
+ARG SSL_DEBFILE="libssl1.1_1.1.1f-1ubuntu2.20_amd64.deb"
 ARG DEBIAN_FRONTEND="noninteractive"
 
 COPY . /alma-gymnasium
