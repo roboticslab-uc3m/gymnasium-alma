@@ -10,13 +10,16 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone &
     apt-get update && \
     apt-get install -y --no-install-recommends software-properties-common gpg-agent && \
     add-apt-repository ppa:deadsnakes/ppa && \
+    apt-get purge -y --autoremove software-properties-common gpg-agent && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
         wget \
         python3.11 \
-        python3-pip \
         libgomp1 \
     && \
+    ln -fs /usr/bin/python3.11 /usr/bin/python3 && \
+    wget -q https://bootstrap.pypa.io/get-pip.py && \
+    python3 get-pip.py && \
     rm -rf /var/lib/apt/lists/* && \
     wget -q http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/$SSL_DEBFILE && \
     dpkg -i $SSL_DEBFILE && \
