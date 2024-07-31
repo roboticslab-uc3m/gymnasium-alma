@@ -2,13 +2,18 @@ FROM ubuntu:22.04
 
 ARG SSL_DEBFILE="libssl1.1_1.1.1f-1ubuntu2.20_amd64.deb"
 ARG DEBIAN_FRONTEND="noninteractive"
+ENV TZ=Europe/Minsk
 
 COPY . /alma-gymnasium
 
-RUN apt-get update && \
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends software-properties-common gpg-agent && \
+    add-apt-repository ppa:deadsnakes/ppa && \
+    apt-get update && \
     apt-get install -y --no-install-recommends \
         wget \
-        python3 \
+        python3.11 \
         python3-pip \
         libgomp1 \
     && \
