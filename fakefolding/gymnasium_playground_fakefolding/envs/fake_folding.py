@@ -14,7 +14,7 @@ v
 X (rows: self.inFile.shape[0]; provides the height in pygame)
 """
 
-MAX_WINDOW_WIDTH, MAX_WINDOW_HEIGHT = 300, 300
+WINDOW_WIDTH, WINDOW_HEIGHT = 300, 300
 COLOR_BACKGROUND = (0, 0, 0)
 COLOR_OK = (255, 255, 255)
 COLOR_PENDING = (0, 0, 255)
@@ -24,26 +24,19 @@ COLOR_ROBOT = (255, 0, 0)
 class FakeFoldingEnv(gym.Env):
     metadata = {"render_modes": ["human", "text"], "render_fps": 4}
 
-    def __init__(self, render_mode=None, inFileStr='labels.txt', initX=2, initY=2):
+    def __init__(self, render_mode=None, inFileLabelsStr='../assets/labels.txt', inFileImgStr='../assets/gymnasium_playground_FakeFolding-v0.png', initX=2, initY=2):
 
         # Remember "Coordinate Systems for `.csv` and `print(numpy)`", above.
 
-        self.inFileStr = inFileStr
-        self.inFile = np.genfromtxt(inFileStr, delimiter=',')
+        self.inFileLabelsStr = inFileLabelsStr
+        self.inFileLabels = np.genfromtxt(inFileLabelsStr, delimiter=',')
 
-        try:
-            self.inFile[initX][initY]
-        except IndexError as e:
-            print('FakeFoldingEnv.__init__: full exception message:', e)
-            print('FakeFoldingEnv.__init__: init out of bounds, please review code!')
-            quit()
-        self._initial_agent_location = np.array([initX, initY])
+        self.inFileImg = pygame.image.load(inFileImgStr)
 
-        self.nS = self.inFile.shape[0] * \
-            self.inFile.shape[1]  # nS: number of states
+        self.nS = 300 * 300  # nS: number of states
         self.observation_space = spaces.Box(
             low=np.array([0, 0]),
-            high=np.array([self.inFile.shape[0], self.inFile.shape[1]]), dtype=int)
+            high=np.array([300, 300]), dtype=int)
 
         self._action_to_direction = {
             0: np.array([-1, 0]),  # UP
@@ -65,7 +58,8 @@ class FakeFoldingEnv(gym.Env):
         self.clock = None
 
     def _get_obs(self):
-        return self._agent_location
+        #return self._agent_location
+        return None
 
     def _get_info(self):
         return {
@@ -76,12 +70,7 @@ class FakeFoldingEnv(gym.Env):
         # We need the following line to seed self.np_random.
         super().reset(seed=seed)
 
-        self.inFile = np.genfromtxt(self.inFileStr, delimiter=',')
-
-        self._agent_location = self._initial_agent_location
-
-        if self.inFile[self._agent_location[0]][self._agent_location[1]] == 2:
-            self.inFile[self._agent_location[0]][self._agent_location[1]] = 1
+        self.inFile = np.genfromtxt(self.inFileLabelsStr, delimiter=',')
 
         observation = self._get_obs()
         info = self._get_info()
@@ -149,56 +138,14 @@ class FakeFoldingEnv(gym.Env):
     def _render_pygame(self):
 
         if self.window is None:
-            inFileAspectRatio = self.inFile.shape[1] / self.inFile.shape[0]
-            print('inFileAspectRatio', inFileAspectRatio)
-            maxWindowAspectRatio = MAX_WINDOW_WIDTH / MAX_WINDOW_HEIGHT
-            print('maxWindowAspectRatio', maxWindowAspectRatio)
-            if inFileAspectRatio == maxWindowAspectRatio:
-                self.WINDOW_WIDTH = MAX_WINDOW_WIDTH
-                self.WINDOW_HEIGHT = MAX_WINDOW_HEIGHT
-            elif inFileAspectRatio > maxWindowAspectRatio:
-                print("inFileAspectRatio > maxWindowAspectRatio (landscape)")
-                self.WINDOW_WIDTH = MAX_WINDOW_WIDTH  # same
-                self.WINDOW_HEIGHT = MAX_WINDOW_WIDTH / inFileAspectRatio
-            elif inFileAspectRatio < maxWindowAspectRatio:
-                print("inFileAspectRatio > maxWindowAspectRatio (portrait)")
-                self.WINDOW_HEIGHT = MAX_WINDOW_HEIGHT  # same
-                self.WINDOW_WIDTH = MAX_WINDOW_HEIGHT * inFileAspectRatio
             pygame.init()
             pygame.display.init()
-            self.window = pygame.display.set_mode(
-                (self.WINDOW_WIDTH, self.WINDOW_HEIGHT))
-            self.cellWidth = self.WINDOW_WIDTH/self.inFile.shape[1]
-            self.cellHeight = self.WINDOW_HEIGHT/self.inFile.shape[0]
+            self.window = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+            self.window.blit(self.inFileImg, (0,0))
+
         if self.clock is None:
             self.clock = pygame.time.Clock()
 
-        canvas = pygame.Surface((self.WINDOW_WIDTH, self.WINDOW_HEIGHT))
-        canvas.fill(COLOR_BACKGROUND)
-        for iX in range(self.inFile.shape[0]):
-            # print "iX:",iX
-            for iY in range(self.inFile.shape[1]):
-                # print "* iY:",iY
-
-                # -- Skip box if map indicates a 0
-                if self.inFile[iX][iY] == 0:
-                    continue
-                
-                if self.inFile[iX][iY] == 1:
-                    pygame.draw.rect(canvas,
-                                     COLOR_OK,
-                                     pygame.Rect(self.cellWidth*iY, self.cellHeight*iX, self.cellWidth, self.cellHeight))
-                
-                if self.inFile[iX][iY] == 2:
-                    pygame.draw.rect(canvas,
-                                     COLOR_PENDING,
-                                     pygame.Rect(self.cellWidth*iY, self.cellHeight*iX, self.cellWidth, self.cellHeight))
-                pygame.draw.rect(canvas, COLOR_ROBOT,
-                    pygame.Rect(self.cellWidth*self._agent_location[1]+self.cellWidth/4.0, self.cellHeight*self._agent_location[0]+self.cellHeight/4.0, self.cellWidth/2.0, self.cellHeight/2.0))
-
-        # The following line copies our drawings from `canvas` to the
-        # visible window.
-        self.window.blit(canvas, canvas.get_rect())
         pygame.event.pump()
         pygame.display.update()
 
