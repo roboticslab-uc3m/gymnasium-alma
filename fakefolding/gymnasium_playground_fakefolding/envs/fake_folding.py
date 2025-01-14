@@ -14,7 +14,7 @@ v
 X (rows: self.inFile.shape[0]; provides the height in pygame)
 """
 
-MAX_WINDOW_WIDTH, MAX_WINDOW_HEIGHT = 1920, 1080
+MAX_WINDOW_WIDTH, MAX_WINDOW_HEIGHT = 300, 300
 COLOR_BACKGROUND = (0, 0, 0)
 COLOR_OK = (255, 255, 255)
 COLOR_PENDING = (0, 0, 255)
@@ -24,7 +24,7 @@ COLOR_ROBOT = (255, 0, 0)
 class FakeFoldingEnv(gym.Env):
     metadata = {"render_modes": ["human", "text"], "render_fps": 4}
 
-    def __init__(self, render_mode=None, inFileStr='map1.csv', initX=2, initY=2):
+    def __init__(self, render_mode=None, inFileStr='labels.txt', initX=2, initY=2):
 
         # Remember "Coordinate Systems for `.csv` and `print(numpy)`", above.
 
