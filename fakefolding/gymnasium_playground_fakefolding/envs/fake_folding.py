@@ -34,22 +34,11 @@ class FakeFoldingEnv(gym.Env):
         self.WINDOW_WIDTH = self.inFileImg.get_width()
         self.WINDOW_HEIGHT = self.inFileImg.get_height()
 
-        self.nS = self.WINDOW_WIDTH * self.WINDOW_HEIGHT  # nS: number of states
-        self.observation_space = spaces.Box(
-            low=np.array([0, 0]),
-            high=np.array([self.WINDOW_WIDTH, self.WINDOW_HEIGHT]), dtype=int)
+        #self.nS = self.WINDOW_WIDTH * self.WINDOW_HEIGHT  # nS: number of states
+        self.observation_space = spaces.Box(low=0, high=255, shape=(self.WINDOW_WIDTH, self.WINDOW_HEIGHT), dtype=int)
 
-        self._action_to_direction = {
-            0: np.array([-1, 0]),  # UP
-            1: np.array([-1, 1]),  # UP_RIGHT
-            2: np.array([0, 1]),  # RIGHT
-            3: np.array([1, 1]),  # DOWN_RIGHT
-            4: np.array([1, 0]),  # DOWN
-            5: np.array([1, -1]),  # DOWN_LEFT
-            6: np.array([0, -1]),  # LEFT
-            7: np.array([-1, -1])  # UP_LEFT
-        }
-        self.nA = 8  # nA: number of actions
+
+        self.nA = self.WINDOW_WIDTH * self.WINDOW_HEIGHT # nA: number of actions
         self.action_space = spaces.Discrete(self.nA)
 
         assert render_mode is None or render_mode in self.metadata["render_modes"]
@@ -59,8 +48,7 @@ class FakeFoldingEnv(gym.Env):
         self.clock = None
 
     def _get_obs(self):
-        #return self._agent_location
-        return None
+        return np.zeros((self.WINDOW_WIDTH, self.WINDOW_HEIGHT), dtype=int)
 
     def _get_info(self):
         return {
