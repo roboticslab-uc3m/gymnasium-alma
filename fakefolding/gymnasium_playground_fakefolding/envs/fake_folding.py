@@ -31,12 +31,13 @@ class FakeFoldingEnv(gym.Env):
         self.inFileLabels = np.genfromtxt(inFileLabelsStr, delimiter=',')
 
         self.inFileImg = pygame.image.load(inFileImgStr)
-        self.WINDOW_WIDTH, self.WINDOW_HEIGHT = 300, 300
+        self.WINDOW_WIDTH = self.inFileImg.get_width()
+        self.WINDOW_HEIGHT = self.inFileImg.get_height()
 
-        self.nS = 300 * 300  # nS: number of states
+        self.nS = self.WINDOW_WIDTH * self.WINDOW_HEIGHT  # nS: number of states
         self.observation_space = spaces.Box(
             low=np.array([0, 0]),
-            high=np.array([300, 300]), dtype=int)
+            high=np.array([self.WINDOW_WIDTH, self.WINDOW_HEIGHT]), dtype=int)
 
         self._action_to_direction = {
             0: np.array([-1, 0]),  # UP
