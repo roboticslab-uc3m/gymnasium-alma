@@ -14,7 +14,6 @@ v
 X (rows: self.inFile.shape[0]; provides the height in pygame)
 """
 
-WINDOW_WIDTH, WINDOW_HEIGHT = 300, 300
 COLOR_BACKGROUND = (0, 0, 0)
 COLOR_OK = (255, 255, 255)
 COLOR_PENDING = (0, 0, 255)
@@ -32,6 +31,7 @@ class FakeFoldingEnv(gym.Env):
         self.inFileLabels = np.genfromtxt(inFileLabelsStr, delimiter=',')
 
         self.inFileImg = pygame.image.load(inFileImgStr)
+        self.WINDOW_WIDTH, self.WINDOW_HEIGHT = 300, 300
 
         self.nS = 300 * 300  # nS: number of states
         self.observation_space = spaces.Box(
@@ -140,7 +140,7 @@ class FakeFoldingEnv(gym.Env):
         if self.window is None:
             pygame.init()
             pygame.display.init()
-            self.window = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+            self.window = pygame.display.set_mode((self.WINDOW_WIDTH, self.WINDOW_HEIGHT))
             self.window.blit(self.inFileImg, (0,0))
 
         if self.clock is None:
