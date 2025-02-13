@@ -1,0 +1,1 @@
+from gymnasium_alma_tiago_ironing.envs.ironing import TiagoIroningEnv

@@ -1,0 +1,1 @@
+from tiago_folding.gymnasium_alma_tiago_folding.envs.tiago_folding import TiagoFoldingEnv

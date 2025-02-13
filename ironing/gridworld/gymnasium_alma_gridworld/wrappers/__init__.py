@@ -1,0 +1,1 @@
+from gymnasium_alma_gridworld.wrappers.box_to_discrete_observation import BoxToDiscreteObservation

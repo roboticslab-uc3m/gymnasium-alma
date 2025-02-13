@@ -1,0 +1,1 @@
+from gymnasium_alma_fakefolding.envs.fake_folding import FakeFoldingEnv

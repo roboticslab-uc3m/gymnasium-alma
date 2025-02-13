@@ -1,0 +1,11 @@
+<application>
+<name>ironing App</name>
+
+    <module>
+        <name>BasicCartesianControl</name>
+        <parameters>--name /teo/trunkAndRightArm/CartesianControl --kinematics teo-trunk-rightArm-fetch.ini --ik nrjl --angleRepr axisAngle --robot remotecontrolboardremapper --localPortPrefix /BasicCartesianControl/teo/trunkAndRightArm --axesNames "(AxialTrunk FrontalTrunk FrontalRightShoulder SagittalRightShoulder AxialRightShoulder FrontalRightElbow AxialRightWrist FrontalRightWrist)" --remoteControlBoards "(/teo/trunk /teo/rightArm)"</parameters>
+        <node>localhost</node>
+        <deployer>yarpdev</deployer>
+    </module>
+
+</application>
