@@ -1,0 +1,60 @@
+<mujoco model="tiago_dual_push_box_scene">
+
+  <include file="tiago_dual_position.xml"/>
+
+  <visual>
+    <headlight diffuse="0.6 0.6 0.6" ambient="0.3 0.3 0.3" specular="0 0 0"/>
+    <rgba haze="0.15 0.25 0.35 1"/>
+    <global azimuth="150" elevation="-20" realtime="1"/>
+    
+  </visual>
+
+  <asset>
+    <texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512" height="3072"/>
+    <texture builtin="checker" height="100" name="texplane" rgb1="0.2 0.3 0.4" rgb2="0.1 0.2 0.3" markrgb="0.8 0.8 0.8"
+      type="2d" width="200"/>
+    <material name="MatPlane" reflectance="0.1" shininess="0.4" specular="1" texrepeat="5 5" texuniform="true"
+      texture="texplane"/>
+       <material name="Table" reflectance="0.1" shininess="0.4" specular="1"/>
+    <material name="red" rgba="1 0 0 1" reflectance="0.1" shininess="0.4" specular="1"/>
+
+    <material name="matcarpet" rgba="0.2 0.3 0.4 0.5" />
+  </asset>
+
+
+
+
+  <worldbody>
+    <!-- Table -->
+    <body name="table" pos="1.2 0 -1">
+      <geom name="table:geom" type="box" size="0.5 0.5 0.3" pos="0 0 0.3" material="Table" mass="30" contype="1" conaffinity="1" density="1000" friction="0.95 0.3 0.1"/>
+    </body>
+
+
+    <body name="B3_5" pos="0.9 0.043 -0.4">
+      <joint name="cloth:joint" type="free" damping="0.01"></joint>
+      <composite type="cloth" count="6 6 1" spacing="0.05" flatinertia="0.001">
+        <joint kind="main" damping="0.0001"/>
+        <skin texcoord="true" inflate="0.005" subgrid="2"  rgba="0.8 0.6 0.2 1.0"/>
+        <geom type="capsule" size="0.005 0.002" rgba="1.0 1.0 0.0 1.0" friction="1.0 0.1 0.1"/>
+      </composite>
+    </body>
+
+
+    <light name="spotlight" mode="targetbody" target="base_link" pos="1 0 10"/>
+    <geom name="floor" pos="0 0 -0.99" size="0 0 1" type="plane" material="MatPlane" contype="1" conaffinity="1"/>
+  </worldbody>
+
+<!-- 
+  <sensor>
+    <framepos objtype="site" objname="wrist_site"/>
+    <force name='wrist_ft' site ='wrist_site'/>
+  </sensor> -->
+
+
+  <!-- <keyframe>
+    <key name="pre_push" ctrl="0.641 -0.286 -1.204 2.232 -2.035 -1.379 0.099 0.641 -0.286 -1.204 2.232 -2.035 -1.379 0.099 0.04 0.04 0.04 0.04 -0.0005 -0.0017 0.126 0 0"
+          qpos="0 0 0.0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.126 0 0 0.641 -0.286 -1.204 2.232 -2.035 -1.379 0.099 0.641 -0.286 -1.204 2.232 -2.035 -1.379 0.099 0.04 0.04 0.04 0.040.73 0.043 0.687 1 0 0 0 0 0"/>
+  </keyframe> -->
+
+</mujoco>
