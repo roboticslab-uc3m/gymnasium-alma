@@ -139,6 +139,7 @@ class FoldingEnv(MujocoEnv):
 
 
 
+
     def _set_data(self):
         
         self.left_home = [-1.1, 1.4679, 2.714, 1.7095, -1.5708, 1.37, 0]

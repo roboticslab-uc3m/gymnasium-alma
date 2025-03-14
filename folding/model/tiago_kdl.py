@@ -134,7 +134,6 @@ class TiagoKDL:
         ik_status_r = self.right_il_solver_pos.CartToJnt(q_current, goal_pose_start_end_r, q_tmp_r)
 
         if ik_status_r < 0:
-            print("PUÑETAAAAAAAAAAAAAA")
             q_tmp_r = kdl.JntArray(self.right_chain.getNrOfJoints())
             q_tmp_r = q_current
 

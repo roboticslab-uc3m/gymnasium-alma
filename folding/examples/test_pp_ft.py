@@ -58,7 +58,7 @@ print("p_ppick",p_ppick)
 print("p_pplace",p_pplace)
 print("p_rest",p_rest)
 
-dnm = 1
+dnm = 1000000000000
 phase = 0
 ac = np.ones(8)
 z_ft = 0
