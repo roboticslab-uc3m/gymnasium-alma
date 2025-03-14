@@ -9,6 +9,17 @@ import os
 import glfw
 import mujoco
 
+import PyKDL as kdl
+import kdl_parser_py.urdf as kdlp
+import sys
+
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
+sys.path.append(project_root)
+
+# Importar el módulo
+from model.tiago_kdl import TiagoKDL
+
+
 """
 # Coordinate Systems for `.csv` and `print(numpy)`
 
@@ -18,6 +29,12 @@ X points down (rows); Y points right (columns); Z would point outwards.
 |
 v
 X (rows: self.inFile.shape[0]; provides the height in pygame)
+
+
+For now:
+Observation: the end-effector pose (position vector + orientation quaternion) + gripper state (0-open, 1-closed).
+Action: the end-effector goal + gripper state (0-open, 1-closed).
+Step: joint increments toward end-effector goal, but clipped by a max_increment.
 """
 
 COLOR_BACKGROUND = (0, 0, 0)
@@ -48,10 +65,11 @@ class FoldingEnv(MujocoEnv):
         self.WINDOW_HEIGHT = self.inFileImg.get_height()
 
         #self.nS = self.WINDOW_WIDTH * self.WINDOW_HEIGHT  # nS: number of states
-        self.observation_space = spaces.Box(low=0, high=255, shape=(self.WINDOW_WIDTH, self.WINDOW_HEIGHT), dtype=int)
+        # self.observation_space = spaces.Box(low=0, high=255, shape=(self.WINDOW_WIDTH, self.WINDOW_HEIGHT), dtype=int)
+        self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(8, ), dtype=np.float32)
 
         # mujoco model
-        self.model_path = "../mujoco_model/scene_position_cloth.xml"
+        self.model_path = "../model/scene_position_cloth.xml"
         self.viewer = None
         self.frame_skip = 5
 
@@ -71,7 +89,8 @@ class FoldingEnv(MujocoEnv):
         )
 
         self.nA = self.WINDOW_WIDTH * self.WINDOW_HEIGHT # nA: number of actions
-        self.action_space = spaces.Discrete(self.nA)
+        # self.action_space = spaces.Discrete(self.nA)
+        self.action_space = spaces.Box(low=-np.inf, high=np.inf, shape=(8, ), dtype=np.float32)
 
         self.window = None
         self.clock = None
@@ -84,6 +103,10 @@ class FoldingEnv(MujocoEnv):
             idx = self.data.actuator(self.joints[j]).id
             self.init_ctrl[idx] = self.home[j]
 
+        for j in range(len(self.joints_right)):
+            idx = self.data.actuator(self.joints_right[j]).id
+            self.init_ctrl[idx] = self.rest_qpos[j]
+
         for j in range(len(self.joints_gripper)):
             idx = self.data.actuator(self.joints_gripper[j]).id
             self.init_ctrl[idx] = 0.04
@@ -94,8 +117,6 @@ class FoldingEnv(MujocoEnv):
         self.init_qpos[23:30] = np.array(self.rest_qpos)
         self.init_qvel = np.zeros(len(self.data.qvel))
         self.init_qpos[11] = 0.3
-
-    
 
         # fold
         self.init_qpos[-5] = 1.7
@@ -108,11 +129,18 @@ class FoldingEnv(MujocoEnv):
         self.init_qpos[-26] = 3
 
         # rotation
-        self.init_qpos[32] = 1 # x position
+        self.init_qpos[32] = 0.75 # x position
+        self.init_qpos[33] = -0.07 # x position
         self.init_qpos[38] = -0.4 # yaw rotation
+
+        # kdl model
+        self.max_increment = 0.005
+        self.chain = TiagoKDL()
+
 
 
     def _set_data(self):
+        
         self.left_home = [-1.1, 1.4679, 2.714, 1.7095, -1.5708, 1.37, 0]
         self.right_home = [0.641, -0.286, 1.204, 2.232, -1.035, -1.379, 0.099]
         self.home = self.left_home + self.right_home
@@ -157,6 +185,10 @@ class FoldingEnv(MujocoEnv):
         for j in range(len(self.joints)):
             idx = self.data.actuator(self.joints[j]).id
             full_ctrl[idx] = ctrl[idx]
+        
+        for j in range(len(self.joints_gripper)):
+            idx = self.data.actuator(self.joints_gripper[j]).id
+            full_ctrl[idx] = ctrl[idx]
 
         full_ctrl[4] = self.fixed_torso
 
@@ -172,9 +204,31 @@ class FoldingEnv(MujocoEnv):
         return track_img
 
 
-
     def _get_obs(self):
-        return np.zeros((self.WINDOW_WIDTH, self.WINDOW_HEIGHT), dtype=int)
+        q_r = []
+        for j in self.joints_right:
+            idx = self.data.actuator(j).id
+            q_r.append(self.data.ctrl[idx])
+        gripper_pose = self.chain.fk(np.array(q_r))
+        gripper_state = self._get_gripper_state()
+        obs = np.concatenate((gripper_pose, np.array([gripper_state])))
+        return obs
+    
+
+    def _get_gripper_state(self):
+        finger = []
+        for j in self.joints_gripper:
+            idx = self.data.actuator(j).id
+            finger.append(self.data.ctrl[idx])
+        state = np.clip((finger[0]+finger[1])/0.088, 0, 1)
+        
+        return state
+    
+
+    def _get_gripper_ctrl(self, state):
+        finger_ctrl = [0.044*state, 0.044*state]
+        return finger_ctrl
+    
 
     def _get_info(self):
         return {
@@ -195,7 +249,7 @@ class FoldingEnv(MujocoEnv):
         return observation, info
 
     def step(self, action):
-        #print('FoldingEnv.step', action)
+        # print('FoldingEnv.step', action)
 
         # candidate_state = self._agent_location + self._action_to_direction[action]
         # try:
@@ -226,10 +280,40 @@ class FoldingEnv(MujocoEnv):
         #     terminated = True
         #     quit()
 
+        q_r = []
+        for j in self.joints_right:
+            idx = self.data.actuator(j).id
+            q_r.append(self.data.ctrl[idx])
+
+        goal_joint = self.chain.ik(action[:7], np.array(q_r))
+        increment = goal_joint - np.array(q_r)
+        clipped_increment = np.clip(increment, -self.max_increment, self.max_increment)
+        goal_clipped = np.array(q_r) + clipped_increment
+
         ctrl = self.data.ctrl[:].copy()
+
         for j in range(0, 7):
             idx = self.data.actuator(self.joints_right[j]).id
-            ctrl[idx] = self.rest_qpos[j]
+            ctrl[idx] = goal_clipped[j]
+
+
+        q_gripper =[]
+        for j in range(0, 2):
+            idx = self.data.actuator(self.joints_gripper[j]).id
+            q_gripper.append(self.data.ctrl[idx])
+
+        finger_ctrl = self._get_gripper_ctrl(action[7])
+        increment = finger_ctrl - np.array(q_gripper)
+        clipped_increment = np.clip(increment, -self.max_increment*0.1, self.max_increment*0.1)
+        goal_clipped = np.array(q_gripper) + clipped_increment
+
+        for j in range(0, 2):
+            idx = self.data.actuator(self.joints_gripper[j]).id
+            ctrl[idx] = goal_clipped[j]
+
+
+        reward = 0.0
+        terminated = False
 
         self.do_simulation(ctrl,self.frame_skip)
         
