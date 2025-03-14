@@ -8,10 +8,11 @@ class TiagoKDL:
         self.start_link = "torso_lift_link"
         self.right_end_link = "gripper_right_grasping_frame"
         self.base_link = "base_footprint"
+        self.right_arm_5 = "arm_right_7_link"
 
         current_dir = os.path.dirname(os.path.abspath(__file__))
         path = os.path.join(current_dir, 'urdf', 'tiago_dual_gripper.urdf')
-        self.right_chain, self.q_limits, self.base_to_start_transform, self.end_to_gripper_transform = self._load_chain_from_urdf(path)
+        self.right_chain, self.q_limits, self.base_to_start_transform, self.end_to_gripper_transform, self.ft_chain, self.ft_fk_solver = self._load_chain_from_urdf(path)
 
         # right solver
         self.right_fk_solver = kdl.ChainFkSolverPos_recursive(self.right_chain)
@@ -42,6 +43,28 @@ class TiagoKDL:
         self.q_r = q_tmp_r
 
         return
+    
+    def transform_ft(self, q_r:np.array, ft:np.array):
+        q_r = q_r.tolist()
+        q_r_tmp = kdl.JntArray(self.ft_chain.getNrOfJoints())
+        for i in range(self.ft_chain.getNrOfJoints()):
+            q_r_tmp[i] = q_r[i]
+        
+        base_ft_frame = kdl.Frame()
+        self.ft_fk_solver.JntToCart(q_r_tmp, base_ft_frame)
+
+        base_ft_frame=self.base_to_start_transform *base_ft_frame
+ 
+        base_ft_rotation = base_ft_frame.M 
+
+        ft_vector = kdl.Vector(ft[0], ft[1], ft[2])
+
+        base_ft = base_ft_rotation * ft_vector
+
+        base_ft_np = np.array([ft_vector[0], ft_vector[1], ft_vector[2]])
+
+        return base_ft_np
+
     
 
     def fk(self, q_r:np.array):
@@ -170,7 +193,13 @@ class TiagoKDL:
 
         q_limits = [right_q_min, right_q_max]
 
-        return right_chain, q_limits, base_to_start_transform, end_to_gripper_transform
+
+        # get arm 5
+        ft_chain = tree.getChain(self.start_link, self.right_arm_5)
+        ft_fk_solver = kdl.ChainFkSolverPos_recursive(ft_chain)
+
+
+        return right_chain, q_limits, base_to_start_transform, end_to_gripper_transform, ft_chain, ft_fk_solver
     
 
     def np_to_kdl(self, pose):

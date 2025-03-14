@@ -9,10 +9,9 @@ env = gym.make('gymnasium_playground/Folding-v0',
                inFileImgStr='../assets/gymnasium_playground_Folding-v0.png',
                initX=2,
                initY=2)
-env.reset()
+ob, _ =env.reset()
 env.render()
 
 for i in range(10000):
-    ac = env.action_space.sample()
-    env.step(ac)
+    env.step(ob)
     env.render()

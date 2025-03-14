@@ -61,6 +61,8 @@ print("p_rest",p_rest)
 dnm = 1
 phase = 0
 ac = np.ones(8)
+z_ft = 0
+ft_limit = 8
 
 for i in range(dnm):
     ob, *_ =env.step(ac)
@@ -72,12 +74,16 @@ for i in range(10000000000000):
         ac[:7] = p_ppick
         if np.linalg.norm(ob[:7] - p_ppick) < 0.01:
             phase = 1
+            z_ft = env.get_ft()[-1]
 
     # pick
     elif phase == 1:
+        new_ft =env.get_ft()[-1]
         ac[:7] = p_pick
-        if np.linalg.norm(ob[:7] - p_pick) < 0.01:
+        print("new_ft",new_ft, "z_ft", z_ft, "diff", np.abs(new_ft - z_ft))
+        if new_ft > 0:
             phase = 11
+            ac[:7] = ob[:7]
 
     elif phase == 11:
         ac[-1] = 0
@@ -100,12 +106,16 @@ for i in range(10000000000000):
         ac[:7] = p_pplace
         if np.linalg.norm(ob[:7] - p_pplace) < 0.01:
             phase = 4
+            z_ft = env.get_ft()[-1]
 
     # place
     elif phase == 4:
+        new_ft =env.get_ft()[-1]
         ac[:7] = p_place
-        if np.linalg.norm(ob[:7] - p_place) < 0.01:
+        print("new_ft",new_ft, "z_ft", z_ft, "diff", np.abs(new_ft - z_ft))
+        if new_ft  >0:
             phase = 44
+            ac[:7] = ob[:7]
 
     elif phase == 44:
         ac[-1] = 1

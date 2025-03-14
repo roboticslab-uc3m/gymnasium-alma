@@ -215,13 +215,14 @@
                     mass="1.65582" diaginertia="0.00614362 0.00564011 0.00179127"/>
                   <joint name="arm_right_5_joint" range="-2.0944 2.0944" damping="1"/>
                   <geom material="mercury" mesh="arm_5-wrist-20102"/>
-                  <site name="wrist-site" pos="0 0 0" size="0.01"/>
+                  
                   <body name="arm_right_6_link" pos="0 0 0.15" quat="0.5 -0.5 -0.5 -0.5">
                     <inertial pos="-0.000153 -0.003122 0.000183" quat="0.83147 0.55557 0 0" mass="0.370063"
                       diaginertia="0.000215 0.000174828 0.000169172"/>
                     <joint name="arm_right_6_joint" range="-1.41372 1.41372" damping="1"/>
                     <geom material="mercury" mesh="arm_6-wrist-20102"/>
                     <body name="arm_right_7_link" quat="0.5 0.5 0.5 0.5">
+                      <site name="wrist-site" pos="0 0 0" size="0.01"/>
                       <inertial pos="-0.000152181 0.000155213 0.0711667"
                         quat="0.998131 -0.00144953 -0.0011386 0.0610909" mass="1.13701"
                         diaginertia="0.00366279 0.00330749 0.000778246"/>

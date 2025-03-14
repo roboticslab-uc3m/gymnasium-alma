@@ -202,6 +202,18 @@ class FoldingEnv(MujocoEnv):
         imgs = {"track" : track_img,
                 "head_cam" : head_img}
         return track_img
+    
+
+    def get_ft(self):
+        ft = self.data.sensor("wrist_ft").data
+        q_r = []
+        for j in self.joints_right:
+            idx = self.data.actuator(j).id
+            q_r.append(self.data.ctrl[idx])
+
+        base_ft = self.chain.transform_ft(np.array(q_r), np.array(ft))
+        return base_ft
+
 
 
     def _get_obs(self):
@@ -317,10 +329,8 @@ class FoldingEnv(MujocoEnv):
 
         self.do_simulation(ctrl,self.frame_skip)
         
-
-
         if not np.any(self.inFile == 2):
-            print('FoldingEnv.step: done yay!')
+            # print('FoldingEnv.step: done yay!')
             reward = 1.0
             terminated = True
 
