@@ -1,0 +1,1 @@
+from gymnasium_playground_folding.envs.folding import FoldingEnv
