@@ -26,7 +26,7 @@ X (rows: self.inFile.shape[0]; provides the height in pygame)
 """
 
 
-class IroningEnv(gym.Env):
+class TeoIroningEnv(gym.Env):
     metadata = {"render_modes": ["human", "text"], "render_fps": 4}
 
     def __init__(self, render_mode=None, inFileStr='map1.csv', initX=2, initY=2):
@@ -199,8 +199,8 @@ class IroningEnv(gym.Env):
         try:
             self.inFile[initX][initY]
         except IndexError as e:
-            print('IroningEnv.__init__: full exception message:', e)
-            print('IroningEnv.__init__: init out of bounds, please review code!')
+            print('TeoIroningEnv.__init__: full exception message:', e)
+            print('TeoIroningEnv.__init__: init out of bounds, please review code!')
             quit()
         self._initial_agent_location = np.array([initX, initY])
 
@@ -266,7 +266,7 @@ class IroningEnv(gym.Env):
         return observation, info
 
     def step(self, action):
-        #print('IroningEnv.step', action)
+        #print('TeoIroningEnv.step', action)
 
         candidate_state = self._agent_location + self._action_to_direction[action]
         candidate_state_robot = self._agent_location_robot + self._action_to_direction_robot[action]
@@ -274,9 +274,9 @@ class IroningEnv(gym.Env):
             candidate_state_tag = self.inFile[candidate_state[0]][candidate_state[1]]
         except IndexError as e:
             # state preserved
-            print('IroningEnv.step: full exception message:', e)
+            print('TeoIroningEnv.step: full exception message:', e)
             print(
-                'IroningEnv.step: probably went out of bounds, add some walls on your map!')
+                'TeoIroningEnv.step: probably went out of bounds, add some walls on your map!')
             terminated = True
             quit()
 
@@ -294,7 +294,7 @@ class IroningEnv(gym.Env):
             reward = 0.5
             terminated = False
         else:
-            print('IroningEnv.step: found wicked tag, please review!')
+            print('TeoIroningEnv.step: found wicked tag, please review!')
             terminated = True
             quit()
 
@@ -319,7 +319,7 @@ class IroningEnv(gym.Env):
             quit()
 
         if not np.any(self.inFile == 2):
-            print('IroningEnv.step: done yay!')
+            print('TeoIroningEnv.step: done yay!')
             reward = 1.0
             terminated = True
 
@@ -329,7 +329,7 @@ class IroningEnv(gym.Env):
         return observation, reward, terminated, False, info
 
     def render(self):
-        #print('IroningEnv.render', self.render_mode)
+        #print('TeoIroningEnv.render', self.render_mode)
         if self.render_mode == "human":
             return self._render_pygame()
         if self.render_mode == "text":
@@ -352,4 +352,4 @@ class IroningEnv(gym.Env):
         # framerate stable.
 
     def close(self):
-        print('IroningEnv.close')
+        print('TeoIroningEnv.close')
