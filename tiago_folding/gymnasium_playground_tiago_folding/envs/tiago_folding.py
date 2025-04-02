@@ -43,7 +43,7 @@ COLOR_PENDING = (0, 0, 255)
 COLOR_ROBOT = (255, 0, 0)
 
 
-class FoldingEnv(MujocoEnv):
+class TiagoFoldingEnv(MujocoEnv):
     metadata = {
         "render_modes": [
             "human",
@@ -377,7 +377,7 @@ class FoldingEnv(MujocoEnv):
             self.viewer = None
 
     def close(self):
-        print('FoldingEnv.close')
+        print('TiagoFoldingEnv.close')
         if self.window is not None:
             pygame.display.quit()
             pygame.quit()
