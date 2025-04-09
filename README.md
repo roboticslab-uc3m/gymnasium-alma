@@ -1,5 +1,7 @@
 # gymnasium-alma
 
+Robotic environments for applying AML algorithms, specifically to humanoid robotics domestic tasks, focusing on the laundry pipeline, specifically on the tasks of:
+
 - [ironing](ironing/)
 - [folding](folding/)
 
